@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SAFE MARTINGALE FINAL</title>
+
+<style>
+
+/* ===== BASE ===== */
+body{
+  background:#0f172a;
+  color:#e5e7eb;
+  font-family:system-ui, monospace;
+  margin:0;
+  padding:0;
+}
+
+/* ===== APP ===== */
+.app{
+  max-width:420px;
+  margin:auto;
+  padding:16px;
+}
+
+/* ===== HEADER ===== */
+h2{
+  text-align:center;
+  font-size:16px;
+  color:#facc15;
+  margin-bottom:12px;
+  line-height:1.4;
+}
+
+/* ===== LIVE STATUS ===== */
+#liveStatus{
+  text-align:center;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:10px;
+}
+
+.online{
+  color:#22c55e;
+  animation:pulse 1.5s infinite;
+}
+
+.offline{
+  color:#ef4444;
+}
+
+@keyframes pulse{
+  0%{opacity:.4}
+  50%{opacity:1}
+  100%{opacity:.4}
+}
+
+/* ===== TIMER ===== */
+.timer{
+  text-align:center;
+  font-size:30px;
+  font-weight:600;
+  color:#38bdf8;
+  margin:10px 0;
+  animation:timerPulse 1.5s infinite;
+}
+
+@keyframes timerPulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.05)}
+  100%{transform:scale(1)}
+}
+
+/* ===== CARD ===== */
+.card{
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:12px;
+  padding:16px;
+  text-align:center;
+  margin-top:12px;
+  animation:cardGlow 3s infinite;
+}
+
+@keyframes cardGlow{
+  0%{box-shadow:0 0 5px #020617;}
+  50%{box-shadow:0 0 18px #38bdf8;}
+  100%{box-shadow:0 0 5px #020617;}
+}
+
+/* ===== INPUT ===== */
+input{
+  width:100%;
+  padding:8px;
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #334155;
+  border-radius:6px;
+}
+
+input:focus{
+  outline:none;
+  border-color:#38bdf8;
+}
+
+/* ===== BUTTON ===== */
+button{
+  margin-top:10px;
+  width:100%;
+  padding:8px;
+  background:#22c55e;
+  border:none;
+  border-radius:6px;
+  font-weight:600;
+  color:#022c22;
+}
+
+/* ===== PERIOD ===== */
+#period{
+  color:#38bdf8;
+  font-size:14px;
+  margin-bottom:6px;
+}
+
+/* ===== BIG ===== */
+.big{
+  color:#22c55e;
+  font-size:42px;
+  font-weight:700;
+  text-shadow:0 0 15px #22c55e;
+  animation:pop 0.6s ease;
+}
+
+/* ===== SMALL ===== */
+.small{
+  color:#fb923c;
+  font-size:42px;
+  font-weight:700;
+  text-shadow:0 0 15px #fb923c;
+  animation:pop 0.6s ease;
+}
+
+/* ===== POP EFFECT ===== */
+@keyframes pop{
+  0%{transform:scale(0.6);opacity:0}
+  70%{transform:scale(1.1)}
+  100%{transform:scale(1);opacity:1}
+}
+
+/* ===== LEVEL ===== */
+#level{
+  color:#a78bfa;
+  font-size:13px;
+  margin-top:6px;
+}
+
+/* ===== STATUS ===== */
+#status{
+  margin-top:6px;
+  font-weight:600;
+}
+
+/* ===== WIN / LOSS ===== */
+.win{
+  color:#22c55e;
+  animation:blinkGreen 1s infinite;
+}
+
+.loss{
+  color:#ef4444;
+  animation:blinkRed 1s infinite;
+}
+
+@keyframes blinkGreen{
+  0%,100%{opacity:1}
+  50%{opacity:.5}
+}
+
+@keyframes blinkRed{
+  0%,100%{opacity:1}
+  50%{opacity:.5}
+}
+
+/* ===== LOG ===== */
+.log{
+  margin-top:14px;
+  font-size:13px;
+  line-height:1.6;
+  color:#cbd5f5;
+  animation:fadeIn .5s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+/* ===== HR ===== */
+hr{
+  border:0;
+  border-top:1px dashed #334155;
+  margin:8px 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h2>
+SAFE 1-LEVEL MARTINGALE<br>
+@VIP_NISHAN_AGENT
+</h2>
+
+<!-- LIVE STATUS -->
+<div id="liveStatus" class="online">
+🟢 LIVE TEST : CHECKING...
+</div>
+
+<!-- KEY -->
+<div class="card">
+
+<input id="keyInput" placeholder="ENTER ACCESS KEY">
+
+<button onclick="checkKey()">VERIFY KEY</button>
+
+<div id="keyStatus"></div>
+
+</div>
+
+<!-- TIMER -->
+<div class="timer">
+⏱ <span id="time">60</span>s
+</div>
+
+<!-- MAIN -->
+<div class="card">
+
+<div id="period">PERIOD : ----</div>
+
+<div id="result">LOCKED</div>
+
+<div id="level">LEVEL : LOCKED</div>
+
+<div id="status"></div>
+
+</div>
+
+<!-- LOG -->
+<div id="log" class="log"></div>
+
+</div>
+
+<script>
+
+/* ===== KEY ===== */
+const ADMIN_KEYS={
+ "VIP-ACCESS-30D":"2026-02-28"
+};
+
+let accessGranted=false;
+
+function checkKey(){
+
+ if(ADMIN_KEYS[keyInput.value]){
+   accessGranted=true;
+   keyStatus.innerHTML="✅ ACCESS GRANTED";
+ }else{
+   keyStatus.innerHTML="❌ INVALID KEY";
+ }
+
+}
+
+/* ===== API ===== */
+async function fetchWinGo(){
+
+ try{
+
+  liveStatus.innerHTML="🟡 LIVE TEST : CHECKING...";
+  liveStatus.className="online";
+
+  const r=await fetch(
+   "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json",
+   {cache:"no-store"}
+  );
+
+  const j=await r.json();
+
+  liveStatus.innerHTML="🟢 LIVE TEST : ONLINE";
+
+  return j.data.list[0];
+
+ }catch{
+
+  liveStatus.innerHTML="🔴 LIVE TEST : ERROR";
+  liveStatus.className="offline";
+
+  return null;
+
+ }
+
+}
+
+/* ===== STATE ===== */
+let lastApiPeriod=null;
+let lastPrediction=null;
+let lastPredictionPeriod=null;
+let lossCount=0;
+let winStreak=0;
+
+/* ===== TIMER ===== */
+setInterval(()=>{
+
+ time.innerText=60-new Date().getSeconds();
+
+},1000);
+
+/* ===== ENGINE ===== */
+setInterval(async()=>{
+
+ if(!accessGranted) return;
+
+ const data=await fetchWinGo();
+
+ if(!data) return;
+
+ const apiPeriod=BigInt(data.issueNumber);
+
+ const actual=data.number>=5?"BIG":"SMALL";
+
+ /* CHECK RESULT */
+ if(lastPrediction && lastPredictionPeriod===apiPeriod){
+
+  let statusText;
+
+  if(actual===lastPrediction){
+
+   statusText="🎉 VICTORY ✅";
+   status.className="win";
+   lossCount=0;
+   winStreak++;
+
+  }else{
+
+   statusText="❌ DEFECT";
+   status.className="loss";
+   lossCount++;
+   winStreak=0;
+
+  }
+
+  status.innerHTML=statusText;
+
+  log.innerHTML=
+   `API PERIOD : ${apiPeriod}<br>
+    RESULT : ${actual}<br>
+    PREDICT : ${lastPrediction}<br>
+    STATUS : ${statusText}
+    <hr>`+log.innerHTML;
+
+ }
+
+ if(apiPeriod===lastApiPeriod) return;
+
+ lastApiPeriod=apiPeriod;
+
+ const nextPeriod=apiPeriod+1n;
+
+ period.innerText="PERIOD : "+nextPeriod;
+
+ /* LEVEL */
+ let bias;
+
+ if(lossCount>=1){
+
+  bias=0.85;
+  level.innerText="LEVEL : RECOVERY";
+
+ }else if(winStreak>=2){
+
+  bias=0.55;
+  level.innerText="LEVEL : SAFE MODE";
+
+ }else{
+
+  bias=0.65;
+  level.innerText="LEVEL : NORMAL";
+
+ }
+
+ /* PICK */
+ const pick=
+  Math.random()<bias
+  ?actual
+  :(actual==="BIG"?"SMALL":"BIG");
+
+ result.innerText=pick;
+
+ /* RESET ANIMATION */
+ result.classList.remove("big","small");
+ void result.offsetWidth;
+
+ result.classList.add(pick==="BIG"?"big":"small");
+
+ lastPrediction=pick;
+
+ lastPredictionPeriod=nextPeriod;
+
+},2000);
+
+</script>
+
+</body>
+</html>
