@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NISHAN TRADER – SAFE SYSTEM</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body,html{
+  margin:0;padding:0;height:100%;
+  background:#01040f;
+  font-family:'Rajdhani',sans-serif;
+  color:#fff;overflow:hidden
+}
+iframe{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  border:none;filter:brightness(.4) contrast(1.2);
+  z-index:0
+}
+
+/* LOGIN */
+.wrap{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#0d1635 0%,#01040f 100%)
+}
+.card{
+  width:320px;background:rgba(13,22,53,.95);
+  padding:30px;border-radius:20px;
+  box-shadow:0 0 40px #00f3ff;
+  text-align:center;border:1px solid #00f3ff
+}
+.card h2{font-family:'Orbitron';color:#00f3ff}
+input{
+  width:100%;padding:12px;margin-bottom:15px;
+  border-radius:8px;border:1px solid #00f3ff;
+  background:#050b1d;color:#fff;text-align:center
+}
+.btn{
+  width:100%;padding:12px;
+  background:#00f3ff;border:none;
+  border-radius:8px;font-weight:900;cursor:pointer
+}
+
+/* HUD */
+#hud{
+  display:none;
+  position:fixed;top:15px;left:15px;
+  background:rgba(0,10,30,.9);
+  padding:10px 18px;border-radius:30px;
+  border:1px solid #00f3ff;
+  z-index:50
+}
+.dot{
+  width:8px;height:8px;background:#00ff7f;
+  border-radius:50%;display:inline-block;
+  animation:blink 1s infinite
+}
+@keyframes blink{50%{opacity:0}}
+
+/* SIGNAL */
+#signalBox{
+  display:none;
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.85);
+  display:flex;align-items:center;justify-content:center
+}
+#signalCard{
+  width:320px;background:#071a10;
+  padding:30px;border-radius:25px;
+  text-align:center;border:2px solid #00ff7f;
+  box-shadow:0 0 40px #00ff7f
+}
+.sig-main{
+  font-size:48px;font-family:'Orbitron';
+  color:#00ff7f;margin:10px 0
+}
+.sig-conf{
+  background:#00ff7f;color:#000;
+  padding:5px 15px;border-radius:20px;
+  font-size:12px;font-weight:800
+}
+.period-box{
+  margin-top:10px;
+  background:#00ff7f;color:#000;
+  padding:8px;border-radius:10px;
+  font-family:'Orbitron'
+}
+.start{
+  margin-top:15px;
+  background:#ff3131;color:#fff;
+  border:none;padding:12px;width:100%;
+  border-radius:10px;font-weight:800
+}
+</style>
+</head>
+
+<body>
+
+<iframe src="https://www.hgzy32.com"></iframe>
+
+<!-- LOGIN -->
+<div class="wrap" id="loginWrap">
+  <div class="card">
+    <h2>NISHAN AI HACK</h2>
+    <input id="passKey" placeholder="ENTER ACCESS KEY">
+    <button class="btn" onclick="verify()">ACTIVATE</button>
+    <div id="msg" style="margin-top:8px;font-size:12px;color:#ff4d4d"></div>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <span class="dot"></span>
+  <span>PREDICT: <b id="hudPredict">WAIT</b></span> |
+  <span id="timer">00s</span>
+</div>
+
+<!-- SIGNAL -->
+<div id="signalBox">
+  <div id="signalCard">
+    <div class="sig-conf">ACCURACY MODE</div>
+    <div id="signalText" class="sig-main">--</div>
+    <div class="period-box">PERIOD <span id="signalPeriod">----</span></div>
+    <button class="start" onclick="closeSignal()">START</button>
+  </div>
+</div>
+
+<script>
+// ================= CONFIG =================
+const VALID_KEY = "VIP-2026";
+const API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
+
+// ================= STATE =================
+let active=false;
+let lastApiPeriod=null;
+let lastPrediction=null;
+let lastPredictionPeriod=null;
+let lossCount=0, winStreak=0;
+
+// ================= LOGIN =================
+function verify(){
+  if(passKey.value===VALID_KEY){
+    loginWrap.style.display="none";
+    hud.style.display="block";
+    active=true;
+  }else msg.innerText="WRONG KEY!";
+}
+
+// ================= TIMER =================
+setInterval(()=>{
+  timer.innerText=(60-new Date().getSeconds())+"s";
+},1000);
+
+// ================= API =================
+async function fetchGame(){
+  try{
+    const r=await fetch(API_URL,{cache:"no-store"});
+    const j=await r.json();
+    return j?.data?.list?.[0]||null;
+  }catch{return null;}
+}
+
+// ================= CORE =================
+setInterval(async()=>{
+  if(!active) return;
+
+  const d=await fetchGame();
+  if(!d) return;
+
+  const apiPeriod=BigInt(d.issueNumber);
+  const number=Number(d.number);
+  const actual=number>=5?"BIG":"SMALL";
+
+  // CHECK RESULT
+  if(lastPrediction && lastPredictionPeriod===apiPeriod){
+    actual===lastPrediction?(lossCount=0,winStreak++):(lossCount++,winStreak=0);
+  }
+
+  if(apiPeriod===lastApiPeriod) return;
+  lastApiPeriod=apiPeriod;
+
+  const nextPeriod=apiPeriod+1n;
+
+  let bias=0.65;
+  if(lossCount>=1) bias=0.85;
+  else if(winStreak>=2) bias=0.55;
+
+  const pick=Math.random()<bias?actual:(actual==="BIG"?"SMALL":"BIG");
+
+  hudPredict.innerText=pick;
+  signalText.innerText=pick+" "+(pick==="BIG"?Math.floor(Math.random()*5)+5:Math.floor(Math.random()*5));
+  signalPeriod.innerText=nextPeriod;
+
+  lastPrediction=pick;
+  lastPredictionPeriod=nextPeriod;
+
+  signalBox.style.display="flex";
+},2000);
+
+function closeSignal(){
+  signalBox.style.display="none";
+}
+</script>
+
+</body>
+  </html>
