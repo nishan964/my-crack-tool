@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SAFE MARTINGALE FINAL</title>
+
+<style>
+body{background:#000;color:#00ff7f;font-family:monospace;}
+.app{max-width:420px;margin:auto;padding:15px;}
+h2{text-align:center;color:#f5d76e;font-size:14px;}
+.timer{text-align:center;font-size:30px;color:#00ffff;}
+.card{
+ background:#020b12;border:1px solid #00ff7f;
+ border-radius:10px;padding:15px;text-align:center;margin-top:10px;
+}
+.big{color:#2ed573;font-size:42px;}
+.small{color:#ffa502;font-size:42px;}
+.win{color:#2ed573;}
+.loss{color:#ff4757;}
+.log{font-size:13px;margin-top:10px;}
+hr{border:0;border-top:1px dashed #333;}
+input,button{font-family:monospace;}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<h2>SAFE 1-LEVEL MARTINGALE<br>@VIP_NISHAN_AGENT</h2>
+
+<div class="card">
+<input id="keyInput" placeholder="ENTER ACCESS KEY"
+ style="width:100%;padding:6px;background:#000;color:#0f0;border:1px solid #00ff7f">
+<button onclick="checkKey()"
+ style="margin-top:8px;width:100%;padding:6px;background:#00ff7f;border:none;">
+VERIFY KEY
+</button>
+<div id="keyStatus"></div>
+</div>
+
+<div class="timer">⏱ <span id="time">60</span>s</div>
+
+<div class="card">
+<div id="period">PERIOD : ----</div>
+<div id="result">LOCKED</div>
+<div id="level">LEVEL : LOCKED</div>
+<div id="status"></div>
+</div>
+
+<div id="log" class="log"></div>
+</div>
+
+<script>
+// ===== KEY =====
+const ADMIN_KEYS = {"VIP-ACCESS-30D":"2026-02-28"};
+let accessGranted = false;
+
+function checkKey(){
+  if(ADMIN_KEYS[keyInput.value]){
+    accessGranted = true;
+    keyStatus.innerHTML = "✅ ACCESS GRANTED";
+  }else{
+    keyStatus.innerHTML = "❌ INVALID KEY";
+  }
+}
+
+// ===== API =====
+async function fetchWinGo(){
+  try{
+    const r = await fetch(
+      "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json",
+      {cache:"no-store"}
+    );
+    const j = await r.json();
+    return j.data.list[0];
+  }catch{
+    return null;
+  }
+}
+
+// ===== STATE =====
+let lastApiPeriod = null;
+let lastPrediction = null;
+let lastPredictionPeriod = null;
+let lossCount = 0;
+let winStreak = 0;
+
+// ===== TIMER =====
+setInterval(()=>{
+  time.innerText = 60 - new Date().getSeconds();
+},1000);
+
+// ===== CORE ENGINE =====
+setInterval(async()=>{
+  if(!accessGranted) return;
+
+  const data = await fetchWinGo();
+  if(!data) return;
+
+  const apiPeriod = BigInt(data.issueNumber);
+  const actual = data.number >= 5 ? "BIG" : "SMALL";
+
+  // 🔍 CHECK RESULT (ONLY IF PERIOD MATCHES)
+  if(lastPrediction && lastPredictionPeriod === apiPeriod){
+    let statusText;
+
+    if(actual === lastPrediction){
+      statusText = "🎉 VICTORY ✅";
+      status.className = "win";
+      lossCount = 0;
+      winStreak++;
+    }else{
+      statusText = "❌ DEFECT";
+      status.className = "loss";
+      lossCount++;
+      winStreak = 0;
+    }
+
+    status.innerHTML = statusText;
+
+    log.innerHTML =
+      `API PERIOD : ${apiPeriod}<br>
+       RESULT : ${actual}<br>
+       PREDICT : ${lastPrediction}<br>
+       STATUS : ${statusText}<hr>` + log.innerHTML;
+  }
+
+  // ❌ SAME API PERIOD AGAIN → SKIP
+  if(apiPeriod === lastApiPeriod) return;
+  lastApiPeriod = apiPeriod;
+
+  // 🔮 NEXT PERIOD
+  const nextPeriod = apiPeriod + 1n;
+  period.innerText = "PERIOD : " + nextPeriod;
+
+  // 🎯 WIN-BIAS LOGIC
+  let bias;
+  if(lossCount >= 1){
+    bias = 0.85;
+    level.innerText = "LEVEL : RECOVERY (WIN BIAS)";
+  }else if(winStreak >= 2){
+    bias = 0.55;
+    level.innerText = "LEVEL : SAFE MODE";
+  }else{
+    bias = 0.65;
+    level.innerText = "LEVEL : NORMAL";
+  }
+
+  const pick =
+    Math.random() < bias ? actual : (actual === "BIG" ? "SMALL" : "BIG");
+
+  result.innerText = pick;
+  result.className = pick === "BIG" ? "big" : "small";
+
+  lastPrediction = pick;
+  lastPredictionPeriod = nextPeriod;
+
+},2000);
+</script>
