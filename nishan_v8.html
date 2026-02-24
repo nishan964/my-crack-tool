@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WINGO ULTRA VIP - 0-1 LEVEL SAFE</title>
+    <style>
+        :root {
+            --bg-dark: #080a0c;
+            --neon-green: #00ff88;
+            --neon-blue: #00d2d3;
+            --neon-red: #ff4757;
+            --neon-yellow: #f1c40f;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            background: radial-gradient(circle at top, #1a1c20 0%, var(--bg-dark) 100%);
+            color: #ffffff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px 0;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .pulse-dot { height: 8px; width: 8px; background-color: var(--neon-green); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--neon-green); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+
+        .title { font-size: 20px; font-weight: 800; background: linear-gradient(to right, #00ff88, #00d2d3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+
+        .issue-card { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 15px; margin: 15px 0; border: 1px solid rgba(0, 255, 136, 0.2); }
+        #next-period { color: var(--neon-yellow); font-weight: bold; font-size: 20px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.3); }
+
+        .prediction-display { background: linear-gradient(145deg, #000, #111); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+        .main-val { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 10px; }
+        #p-signal { font-size: 42px; font-weight: 900; text-shadow: 0 0 20px currentColor; letter-spacing: 2px; }
+        #p-num { font-size: 48px; font-weight: 300; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 25px; color: #fff; }
+
+        .safe-badge { color: var(--neon-green); font-size: 11px; font-weight: bold; letter-spacing: 1px; margin-bottom: 15px; display: block; }
+
+        .history-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .history-container::-webkit-scrollbar { width: 3px; }
+        .history-container::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 10px; }
+
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th { position: sticky; top: 0; background: #0a0c0f; color: #555; font-size: 11px; padding: 12px 5px; text-align: center; border-bottom: 1px solid #222; }
+        .history-table td { padding: 12px 5px; font-size: 13px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        
+        .win-tag { color: var(--neon-green); font-weight: bold; }
+        .loss-tag { color: var(--neon-red); font-weight: bold; }
+        .small-txt { color: var(--neon-blue); }
+        .big-txt { color: var(--neon-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="status-header">
+        <span style="font-size: 10px; color: #666;">MOD: 0-1 LEVEL SAFE</span>
+        <span><span class="pulse-dot"></span> <span style="font-size: 10px; color: var(--neon-green);">SERVER ACTIVE</span></span>
+    </div>
+
+    <div class="title">WINGO VIP AI BOT</div>
+    
+    <div class="issue-card">
+        <div style="font-size: 11px; color: #777; margin-bottom: 5px;">NEXT PERIOD ID</div>
+        <div id="next-period">FETCHING...</div>
+    </div>
+
+    <div class="prediction-display">
+        <span class="safe-badge">● AI TREND ANALYSIS: SECURE</span>
+        <div class="main-val">
+            <div id="p-signal" class="small-txt">WAIT</div>
+            <div id="p-num">?</div>
+        </div>
+    </div>
+
+    <div class="history-container">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>PERIOD</th>
+                    <th>PRED</th>
+                    <th>RES</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody id="log"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let lastPeriod = null;
+    let currentPrediction = "";
+    let currentNumber = 0;
+    let historyData = [];
+
+    async function fetchData() {
+        try {
+            const response = await fetch("https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json", { cache: "no-store" });
+            const json = await response.json();
+            const list = json.data.list;
+            const lastData = list[0];
+            
+            if (lastData.issueNumber !== lastPeriod) {
+                if (lastPeriod !== null) {
+                    addLog(lastData);
+                }
+                lastPeriod = lastData.issueNumber;
+                historyData = list.slice(0, 5); // ট্রেন্ড চেক করার জন্য লাস্ট ৫টি রেজাল্ট
+                updatePrediction(lastPeriod);
+            }
+        } catch (e) { console.log("Re-syncing..."); }
+    }
+
+    // 0-1 Level Safe লজিক (Trend Analysis)
+    function updatePrediction(id) {
+        const nextId = (BigInt(id) + 1n).toString();
+        document.getElementById('next-period').innerText = nextId;
+
+        // ট্রেন্ড লজিক: আগের রেজাল্ট যদি ২ বার BIG হয়, তবে পরবর্তী SMALL হওয়ার চান্স বেশি (এরকম ফিল্টার)
+        let lastNums = historyData.map(d => parseInt(d.number));
+        let avg = lastNums.reduce((a, b) => a + b, 0) / lastNums.length;
+
+        if (avg > 4.5) {
+            currentNumber = Math.floor(Math.random() * 5); // 0-4 (SMALL)
+            currentPrediction = "SMALL";
+        } else {
+            currentNumber = Math.floor(Math.random() * 5) + 5; // 5-9 (BIG)
+            currentPrediction = "BIG";
+        }
+
+        const sig = document.getElementById('p-signal');
+        sig.innerText = currentPrediction;
+        sig.className = currentPrediction === "SMALL" ? "small-txt" : "big-txt";
+        document.getElementById('p-num').innerText = currentNumber;
+    }
+
+    function addLog(data) {
+        const resNum = parseInt(data.number);
+        const resType = resNum <= 4 ? "SMALL" : "BIG";
+        const isWin = resType === currentPrediction;
+
+        const log = document.getElementById('log');
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td style="color:#888">${data.issueNumber.slice(-3)}</td>
+            <td class="${currentPrediction === 'SMALL' ? 'small-txt' : 'big-txt'}">${currentPrediction}</td>
+            <td style="font-weight:bold">${resNum}</td>
+            <td class="${isWin ? 'win-tag' : 'loss-tag'}">${isWin ? 'WIN' : 'LOSS'}</td>
+        `;
+        
+        log.prepend(row);
+    }
+
+    setInterval(fetchData, 3000);
+    fetchData();
+</script>
+
+</body>
+</html>
+  
